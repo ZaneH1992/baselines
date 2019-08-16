@@ -294,9 +294,10 @@ def learn(env,
                 reset = True
                 if t > learning_starts and action_replay:
                     obses_t, actions, rewards, obses_tp1, dones = replay_buffer.sample(batch_size, action)
-                    weights, batch_idxes = np.ones_like(rewards), None
-                    td_errors = train(obses_t, actions, rewards, obses_tp1, dones, weights)
-                    logger.record_tabular("reinforce terminate action :", action)
+                    if len(obses_t) != 0:
+                        weights, batch_idxes = np.ones_like(rewards), None
+                        td_errors = train(obses_t, actions, rewards, obses_tp1, dones, weights)
+                        logger.record_tabular("reinforce terminate action :", action)
 
 
             if t > learning_starts and t % train_freq == 0:

@@ -169,8 +169,11 @@ class ActionreplayBuffer(object):
             done_mask[i] = 1 if executing act_batch[i] resulted in
             the end of an episode and 0 otherwise.
         """
-        idxes = [random.randint(0, len(self._storage[action]) - 1) for _ in range(batch_size)]
-        return self._encode_sample(idxes,action)
+        if len(self._storage[action]) >= 2:
+            idxes = [random.randint(0, len(self._storage[action]) - 1) for _ in range(batch_size)]
+            return self._encode_sample(idxes,action)
+        else:
+            return [],[],[],[],[],[]
 
 
 class PrioritizedReplayBuffer(ReplayBuffer):
