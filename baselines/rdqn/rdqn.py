@@ -12,12 +12,12 @@ from baselines import logger
 from baselines.common.schedules import LinearSchedule
 from baselines.common import set_global_seeds
 
-from baselines import deepq
-from baselines.deepq.replay_buffer import ReplayBuffer, PrioritizedReplayBuffer
-from baselines.deepq.utils import ObservationInput
+from baselines import rdqn
+from baselines.rdqn.action_replay_buffer import ReplayBuffer, PrioritizedReplayBuffer, ActionreplayBuffer
+from baselines.rdqn.utils import ObservationInput
 
 from baselines.common.tf_util import get_session
-from baselines.deepq.models import build_q_func
+from baselines.rdqn.models import build_q_func
 
 
 class ActWrapper(object):
@@ -30,7 +30,7 @@ class ActWrapper(object):
     def load_act(path):
         with open(path, "rb") as f:
             model_data, act_params = cloudpickle.load(f)
-        act = deepq.build_act(**act_params)
+        act = rdqn.build_act(**act_params)
         sess = tf.Session()
         sess.__enter__()
         with tempfile.TemporaryDirectory() as td:
@@ -113,6 +113,7 @@ def learn(env,
           prioritized_replay_beta0=0.4,
           prioritized_replay_beta_iters=None,
           prioritized_replay_eps=1e-6,
+          action_replay=True,
           param_noise=False,
           callback=None,
           load_path=None,
@@ -198,7 +199,7 @@ def learn(env,
     def make_obs_ph(name):
         return ObservationInput(observation_space, name=name)
 
-    act, train, update_target, debug = deepq.build_train(
+    act, train, update_target, debug = rdqn.build_train(
         make_obs_ph=make_obs_ph,
         q_func=q_func,
         num_actions=env.action_space.n,
@@ -224,6 +225,9 @@ def learn(env,
         beta_schedule = LinearSchedule(prioritized_replay_beta_iters,
                                        initial_p=prioritized_replay_beta0,
                                        final_p=1.0)
+    elif action_replay:
+        replay_buffer = ActionreplayBuffer(buffer_size, env.action_space.n)
+        beta_schedule = None
     else:
         replay_buffer = ReplayBuffer(buffer_size)
         beta_schedule = None
@@ -288,6 +292,12 @@ def learn(env,
                 obs = env.reset()
                 episode_rewards.append(0.0)
                 reset = True
+                if t > learning_starts and action_replay:
+                    obses_t, actions, rewards, obses_tp1, dones = replay_buffer.sample(batch_size, action)
+                    weights, batch_idxes = np.ones_like(rewards), None
+                    td_errors = train(obses_t, actions, rewards, obses_tp1, dones, weights)
+                    logger.record_tabular("reinforce terminate action :", action)
+
 
             if t > learning_starts and t % train_freq == 0:
                 # Minimize the error in Bellman's equation on a batch sampled from replay buffer.

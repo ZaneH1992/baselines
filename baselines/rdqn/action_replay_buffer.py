@@ -67,6 +67,7 @@ class ReplayBuffer(object):
         idxes = [random.randint(0, len(self._storage) - 1) for _ in range(batch_size)]
         return self._encode_sample(idxes)
 
+
 class ActionreplayBuffer(object):
     def __init__(self, size, num_action):
         """Create Replay buffer.
@@ -97,8 +98,9 @@ class ActionreplayBuffer(object):
     def _encode_sample(self, idxes):
         obses_t, actions, rewards, obses_tp1, dones = [], [], [], [], []
         iter_action=0
-        for i in idxes:
-            data = self._storage[iter_action % self._num_action][i]
+        for i in range(idxes):
+            seed = random.randint(0, len(self._storage[iter_action % self._num_action]) - 1)
+            data = self._storage[iter_action % self._num_action][seed]
             obs_t, action, reward, obs_tp1, done = data
             obses_t.append(np.array(obs_t, copy=False))
             actions.append(np.array(action, copy=False))
@@ -142,8 +144,31 @@ class ActionreplayBuffer(object):
             done_mask[i] = 1 if executing act_batch[i] resulted in
             the end of an episode and 0 otherwise.
         """
-        idxes = [random.randint(0, len(self._storage) - 1) for _ in range(batch_size)]
-        return self._encode_sample(idxes)
+        return self._encode_sample(batch_size)
+    def sample(self, batch_size,action):
+        """Sample a batch of experiences.
+
+        Parameters
+        ----------
+        batch_size: int
+            How many transitions to sample.
+
+        Returns
+        -------
+        obs_batch: np.array
+            batch of observations
+        act_batch: np.array
+            batch of actions executed given obs_batch
+        rew_batch: np.array
+            rewards received as results of executing act_batch
+        next_obs_batch: np.array
+            next set of observations seen after executing act_batch
+        done_mask: np.array
+            done_mask[i] = 1 if executing act_batch[i] resulted in
+            the end of an episode and 0 otherwise.
+        """
+        idxes = [random.randint(0, len(self._storage[action]) - 1) for _ in range(batch_size)]
+        return self._encode_sample(idxes,action)
 
 
 class PrioritizedReplayBuffer(ReplayBuffer):
