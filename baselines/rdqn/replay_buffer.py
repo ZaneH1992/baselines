@@ -78,9 +78,9 @@ class ActionreplayBuffer(object):
             Max number of transitions to store in the buffer. When the buffer
             overflows the old memories are dropped.
         """
-        self._storage = [[] for _ in num_action]
+        self._storage = [[] for _ in range(num_action)]
         self._maxsize = size
-        self._next_idx = [0 for _ in num_action]
+        self._next_idx = [0 for _ in range(num_action)]
         self._num_action = num_action
 
     def __len__(self, i):
