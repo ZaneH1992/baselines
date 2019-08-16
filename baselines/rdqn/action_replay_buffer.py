@@ -99,6 +99,8 @@ class ActionreplayBuffer(object):
         obses_t, actions, rewards, obses_tp1, dones = [], [], [], [], []
         iter_action=0
         for i in range(idxes):
+            if len(self._storage[iter_action]) == 0:
+                iter_action += 1
             seed = random.randint(0, len(self._storage[iter_action % self._num_action]) - 1)
             data = self._storage[iter_action % self._num_action][seed]
             obs_t, action, reward, obs_tp1, done = data
