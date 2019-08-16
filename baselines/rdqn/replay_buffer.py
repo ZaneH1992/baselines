@@ -100,7 +100,7 @@ class ActionreplayBuffer(object):
         if ""==action:
             iter_action = 0
             for i in range(idxes):
-                if len(self._storage[iter_action]) == 0:
+                if len(self._storage[iter_action % self._num_action]) == 0:
                     iter_action += 1
                     continue
                 seed = random.randint(0, len(self._storage[iter_action % self._num_action]) - 1)
