@@ -92,7 +92,7 @@ class ActionreplayBuffer(object):
         if self._next_idx[action] >= len(self._storage[action]):
             self._storage[action].append(data)
         else:
-            self._storage[action][self._next_idx] = data
+            self._storage[action][self._next_idx[action]] = data
         self._next_idx[action] = (self._next_idx[action] + 1) % self._maxsize
 
     def _encode_sample(self, idxes, action=""):
