@@ -95,86 +95,65 @@ class ActionreplayBuffer(object):
             self._storage[action][self._next_idx] = data
         self._next_idx[action] = (self._next_idx[action] + 1) % self._maxsize
 
-    def _encode_sample(self, idxes):
+    def _encode_sample(self, idxes, action=""):
         obses_t, actions, rewards, obses_tp1, dones = [], [], [], [], []
-        iter_action=0
-        for i in range(idxes):
-            if len(self._storage[iter_action]) == 0:
+        if ""==action:
+            iter_action = 0
+            for i in range(idxes):
+                if len(self._storage[iter_action]) == 0:
+                    iter_action += 1
+                    continue
+                seed = random.randint(0, len(self._storage[iter_action % self._num_action]) - 1)
+                data = self._storage[iter_action % self._num_action][seed]
+                obs_t, action, reward, obs_tp1, done = data
+                obses_t.append(np.array(obs_t, copy=False))
+                actions.append(np.array(action, copy=False))
+                rewards.append(reward)
+                obses_tp1.append(np.array(obs_tp1, copy=False))
+                dones.append(done)
                 iter_action += 1
-                continue
-            seed = random.randint(0, len(self._storage[iter_action % self._num_action]) - 1)
-            data = self._storage[iter_action % self._num_action][seed]
-            obs_t, action, reward, obs_tp1, done = data
-            obses_t.append(np.array(obs_t, copy=False))
-            actions.append(np.array(action, copy=False))
-            rewards.append(reward)
-            obses_tp1.append(np.array(obs_tp1, copy=False))
-            dones.append(done)
-            iter_action += 1
-        return np.array(obses_t), np.array(actions), np.array(rewards), np.array(obses_tp1), np.array(dones)
-
-    def _encode_sample(self, idxes,action):
-        obses_t, actions, rewards, obses_tp1, dones = [], [], [], [], []
-        for i in idxes:
-            data = self._storage[action][i]
-            obs_t, action, reward, obs_tp1, done = data
-            obses_t.append(np.array(obs_t, copy=False))
-            actions.append(np.array(action, copy=False))
-            rewards.append(reward)
-            obses_tp1.append(np.array(obs_tp1, copy=False))
-            dones.append(done)
-        return np.array(obses_t), np.array(actions), np.array(rewards), np.array(obses_tp1), np.array(dones)
-
-    def sample(self, batch_size):
-        """Sample a batch of experiences.
-
-        Parameters
-        ----------
-        batch_size: int
-            How many transitions to sample.
-
-        Returns
-        -------
-        obs_batch: np.array
-            batch of observations
-        act_batch: np.array
-            batch of actions executed given obs_batch
-        rew_batch: np.array
-            rewards received as results of executing act_batch
-        next_obs_batch: np.array
-            next set of observations seen after executing act_batch
-        done_mask: np.array
-            done_mask[i] = 1 if executing act_batch[i] resulted in
-            the end of an episode and 0 otherwise.
-        """
-        return self._encode_sample(batch_size)
-    def sample(self, batch_size,action):
-        """Sample a batch of experiences.
-
-        Parameters
-        ----------
-        batch_size: int
-            How many transitions to sample.
-
-        Returns
-        -------
-        obs_batch: np.array
-            batch of observations
-        act_batch: np.array
-            batch of actions executed given obs_batch
-        rew_batch: np.array
-            rewards received as results of executing act_batch
-        next_obs_batch: np.array
-            next set of observations seen after executing act_batch
-        done_mask: np.array
-            done_mask[i] = 1 if executing act_batch[i] resulted in
-            the end of an episode and 0 otherwise.
-        """
-        if len(self._storage[action]) >= 2:
-            idxes = [random.randint(0, len(self._storage[action]) - 1) for _ in range(batch_size)]
-            return self._encode_sample(idxes,action)
+            return np.array(obses_t), np.array(actions), np.array(rewards), np.array(obses_tp1), np.array(dones)
         else:
-            return [],[],[],[],[],[]
+            for i in idxes:
+                data = self._storage[action][i]
+                obs_t, action, reward, obs_tp1, done = data
+                obses_t.append(np.array(obs_t, copy=False))
+                actions.append(np.array(action, copy=False))
+                rewards.append(reward)
+                obses_tp1.append(np.array(obs_tp1, copy=False))
+                dones.append(done)
+            return np.array(obses_t), np.array(actions), np.array(rewards), np.array(obses_tp1), np.array(dones)
+
+    def sample(self, batch_size, action = ""):
+        """Sample a batch of experiences.
+
+        Parameters
+        ----------
+        batch_size: int
+            How many transitions to sample.
+
+        Returns
+        -------
+        obs_batch: np.array
+            batch of observations
+        act_batch: np.array
+            batch of actions executed given obs_batch
+        rew_batch: np.array
+            rewards received as results of executing act_batch
+        next_obs_batch: np.array
+            next set of observations seen after executing act_batch
+        done_mask: np.array
+            done_mask[i] = 1 if executing act_batch[i] resulted in
+            the end of an episode and 0 otherwise.
+        """
+        if "" == action:
+            return self._encode_sample(batch_size)
+        else:
+            if len(self._storage[action]) >= 2:
+                idxes = [random.randint(0, len(self._storage[action]) - 1) for _ in range(batch_size)]
+                return self._encode_sample(idxes,action)
+            else:
+                return [],[],[],[],[],[]
 
 
 class PrioritizedReplayBuffer(ReplayBuffer):
