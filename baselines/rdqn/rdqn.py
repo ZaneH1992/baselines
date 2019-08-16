@@ -13,7 +13,7 @@ from baselines.common.schedules import LinearSchedule
 from baselines.common import set_global_seeds
 
 from baselines import rdqn
-from baselines.rdqn.action_replay_buffer import ReplayBuffer, PrioritizedReplayBuffer, ActionreplayBuffer
+from baselines.rdqn.replay_buffer import ReplayBuffer, PrioritizedReplayBuffer, ActionreplayBuffer
 from baselines.rdqn.utils import ObservationInput
 
 from baselines.common.tf_util import get_session
