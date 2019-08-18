@@ -2,7 +2,7 @@ def atari():
     return dict(
         network='conv_only',
         lr=1e-4,
-        buffer_size=2e5,
+        buffer_size=int(2e4),
         exploration_fraction=0.1,
         exploration_final_eps=0.01,
         train_freq=4,
