@@ -18,7 +18,7 @@ from baselines.rdqn.utils import ObservationInput
 
 from baselines.common.tf_util import get_session
 from baselines.rdqn.models import build_q_func
-
+from baselines.common.schedules import ConstantSchedule, PiecewiseSchedule
 
 class ActWrapper(object):
     def __init__(self, act, act_params):
@@ -232,9 +232,14 @@ def learn(env,
         replay_buffer = ReplayBuffer(buffer_size)
         beta_schedule = None
     # Create the schedule for exploration starting from 1.
-    exploration = LinearSchedule(schedule_timesteps=int(exploration_fraction * total_timesteps),
+    exploration = PiecewiseSchedule([
+        (0, 1.0),
+        (int(1e6), 0.1),
+        (int(1e7), 0.01)
+    ], outside_value=0.01)
+    '''exploration = LinearSchedule(schedule_timesteps=int(exploration_fraction * total_timesteps),
                                  initial_p=1.0,
-                                 final_p=exploration_final_eps)
+                                 final_p=exploration_final_eps)'''
 
     # Initialize the parameters and copy them to the target network.
     U.initialize()
