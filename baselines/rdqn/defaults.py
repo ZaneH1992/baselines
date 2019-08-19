@@ -16,7 +16,7 @@ def atari():
         checkpoint_freq=10000,
         checkpoint_path=None,
         dueling=False,
-        kernel_initializer=tf.variance_scaling_initializer(scale=2)
+        weight_initializer=tf.variance_scaling_initializer(scale=2)
     )
 
 def retro():
