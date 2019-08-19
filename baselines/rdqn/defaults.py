@@ -1,3 +1,4 @@
+import tensorflow as tf
 def atari():
     return dict(
         network='conv_only',
@@ -14,7 +15,8 @@ def atari():
         action_replay=True,
         checkpoint_freq=10000,
         checkpoint_path=None,
-        dueling=False
+        dueling=False,
+        kernel_initializer=tf.variance_scaling_initializer(scale=2)
     )
 
 def retro():
